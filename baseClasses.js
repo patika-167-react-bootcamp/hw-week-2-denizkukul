@@ -100,6 +100,8 @@ class Component {
     this.childComponents && this.renderChildComponents();
     // If this component uses event listeners, add event listeners
     this.addListeners && this.addListeners();
+    // Run if this component has after render functions
+    this.afterRender && this.afterRender();
   }
   // Components must be created as a new class extending Component class with template method
   // Event listeners must be added in addListeners method

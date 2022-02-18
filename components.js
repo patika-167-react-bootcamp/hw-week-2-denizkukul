@@ -17,7 +17,7 @@ class App extends Component {
       </div>
       <div class="transfers-panel">
         ${new NewTransfer({ users: this.users, history: this.history, subscriptions: [this.users], parentComponent: this }).target()}
-        ${new HistoryLogs({ users: this.users, history: this.history, subscriptions: [this.history], parentComponent: this }).target()}
+        ${new HistoryLogs({ users: this.users, history: this.history, parentComponent: this }).target()}
       </div>
     </div>
     `)
@@ -151,25 +151,64 @@ class NewTransfer extends Component {
 
 // Component lists logs of transfers
 class HistoryLogs extends Component {
+  constructor(args) {
+    const fromFilter = new State("");
+    const toFilter = new State("");
+    super({ ...args, fromFilter, toFilter });
+  }
+  template() {
+    return (`
+      ${new HistoryLogsHead({ history: this.history, fromFilter: this.fromFilter, toFilter: this.toFilter, parentComponent: this }).target()}
+      ${new HistoryLogsList({ history: this.history, fromFilter: this.fromFilter, toFilter: this.toFilter, users: this.users, subscriptions: [this.history, this.toFilter, this.fromFilter], parentComponent: this }).target()}
+    `)
+  }
+}
+
+class HistoryLogsHead extends Component {
+  setFromFilter(e) {
+    this.fromFilter.setValue(e.target.value);
+  }
+  setToFilter(e) {
+    this.toFilter.setValue(e.target.value);
+  }
   template() {
     return (`
       <div class="title"> History </div>
+      <div class="filters">
+        <div class="label"> Filter Transfers: </div>
+        <input class="fromfilter-input" placeholder="From" pattern="([a-zA-Z]+[a-zA-Z ]+)" maxlength="20"/>
+        <input class="tofilter-input" placeholder="To" pattern="([a-zA-Z]+[a-zA-Z ]+)" maxlength="20"/>
+      </div>
+    `)
+  }
+  addListeners() {
+    this.targetElement.querySelector(".fromfilter-input").addEventListener("input", this.setFromFilter);
+    this.targetElement.querySelector(".tofilter-input").addEventListener("input", this.setToFilter);
+  }
+}
+
+class HistoryLogsList extends Component {
+  filterLogs() {
+    if (this.fromFilter.value === "" && this.toFilter.value === "") return this.history.value;
+    return this.history.value.filter(log => (log.sendFromName && log.sendFromName.includes(this.fromFilter.value)) && (log.sendToName && log.sendToName.includes(this.toFilter.value)))
+  }
+  template() {
+    return (`
       <ul class="logs">
-        ${this.history.value.map((log) => `<li>${new Log({ history: this.history, users: this.users, log, parentComponent: this }).target()}</li>`).join("")}
+        ${this.filterLogs().map((log) => `<li>${new Log({ history: this.history, users: this.users, log, parentComponent: this }).target()}</li>`).join("")}
       </ul>
     `)
+  }
+  afterRender() {
+    let height = this.targetElement.scrollHeight;
+    this.targetElement.scrollTop = height;
   }
 }
 
 class Log extends Component {
   undoTransfer() {
     if (this.log.reverted) return;
-
-    let sendFromUID = this.log.sendFromUID
-    let sendToUID = this.log.sendToUID
-    let sendAmount = this.log.sendAmount
-    let sendToName = this.log.sendToName
-    let sendFromName = this.log.sendFromName
+    let { sendFromUID, sendToUID, sendAmount, sendToName, sendFromName } = this.log
 
     // Revert transfer
     let targetUsers = { sendFromUID: false, sendToUID: false };
