@@ -13,11 +13,11 @@ class App extends Component {
     <div id="${this.targetElementID}" class="app">
       <div class="users-panel">
         ${new NewUser({ users: this.users, history: this.history, parentComponent: this }).target()}
-        ${new UserList({ users: this.users, subscriptions: [this.users], parentComponent: this }).target()}
+        ${new UserList({ users: this.users, history: this.history, subscriptions: [this.users], parentComponent: this }).target()}
       </div>
       <div class="transfers-panel">
         ${new NewTransfer({ users: this.users, history: this.history, subscriptions: [this.users], parentComponent: this }).target()}
-        ${new HistoryLogs({ history: this.history, subscriptions: [this.history], parentComponent: this }).target()}
+        ${new HistoryLogs({ users: this.users, history: this.history, subscriptions: [this.history], parentComponent: this }).target()}
       </div>
     </div>
     `)
@@ -26,19 +26,15 @@ class App extends Component {
 
 // Component adds new users to the list
 class NewUser extends Component {
-  generateUserID() {
-    // Random number 100000 - 999999
-    return Math.floor(Math.random() * (900000) + 100000);
-  }
   addUser(e) {
     e.preventDefault();
     // Get input elements
     const usernameInput = this.targetElement.querySelector(".username-input");
     const balanceInput = this.targetElement.querySelector(".balance-input");
     // Add new user to users state
-    let uid = this.generateUserID()
+    let uid = this.generateID()
     this.users.setValue([...this.users.value, { name: usernameInput.value, uid: uid, balance: Number(balanceInput.value) }])
-    this.history.setValue([...this.history.value, { type: "adduser", time: this.getTime(), username: usernameInput.value, uid: uid, balance: balanceInput.value }])
+    this.history.setValue([...this.history.value, { id: this.generateID(), type: "adduser", time: this.getTime(), username: usernameInput.value, uid: uid, balance: balanceInput.value }])
     // Clear input fields
     usernameInput.value = "";
     balanceInput.value = "";
@@ -68,13 +64,29 @@ class UserList extends Component {
     return (`
         <div class="title"><p class=username>User</p><p class="balance">Balance</p></div>
         <ul class="userlist">
-        ${this.users.value.map(user => `<li><p class=username>${user.name}</p><p class="balance">${user.balance} ₺</p></li>`).join("")}
+        ${this.users.value.map(user => `<li>${new UserListItem({ user, history: this.history, users: this.users, parentComponent: this }).target()}</li>`).join("")}
         </ul>
     `)
   }
 }
 
-
+// Component userlist-item
+class UserListItem extends Component {
+  removeUser() {
+    this.users.setValue(this.users.value.filter(user => user.uid !== this.user.uid));
+    this.history.setValue([...this.history.value, { id: this.generateID(), type: "removeuser", time: this.getTime(), uid: this.user.uid, username: this.user.name }])
+  }
+  template() {
+    return (`
+      <p class=username>${this.user.name}</p>
+      <p class="balance">${this.user.balance} ₺</p>
+      <button class="removeuser-button"><svg xmlns="http://www.w3.org/2000/svg" height="26px" viewBox="0 0 24 24" width="26px" fill="#4b7bec"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M14.59 8L12 10.59 9.41 8 8 9.41 10.59 12 8 14.59 9.41 16 12 13.41 14.59 16 16 14.59 13.41 12 16 9.41 14.59 8zM12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg></button>
+    `)
+  }
+  addListeners() {
+    this.targetElement.querySelector(".removeuser-button").addEventListener("click", this.removeUser);
+  }
+}
 
 // Component manages transfers --- subscribes to users state
 class NewTransfer extends Component {
@@ -88,7 +100,7 @@ class NewTransfer extends Component {
     let sendFromName;
 
     if (sendFromUID === sendToUID) {
-      this.history.setValue([...this.history.value, { type: "error", time: this.getTime(), message: "Sender and reciever can not be same user." }])
+      this.history.setValue([...this.history.value, { id: this.generateID(), type: "error", time: this.getTime(), message: "Sender and reciever can not be same user." }])
       return;
     }
 
@@ -107,7 +119,7 @@ class NewTransfer extends Component {
       }
     })
     this.users.setValue(newUsersState);
-    this.history.setValue([...this.history.value, { type: "transfer", time: this.getTime(), sendAmount, sendFromName, sendFromUID, sendToName, sendToUID }])
+    this.history.setValue([...this.history.value, { id: this.generateID(), type: "transfer", time: this.getTime(), sendAmount, sendFromName, sendFromUID, sendToName, sendToUID, reverted: false }])
   }
 
   template() {
@@ -141,31 +153,86 @@ class NewTransfer extends Component {
 class HistoryLogs extends Component {
   template() {
     return (`
-    <div class="title"> History </div>
+      <div class="title"> History </div>
       <ul class="logs">
-        ${this.history.value.map((log) => `<li>${new Log({ log, parentComponent: this }).target()}</li>`).join("")}
+        ${this.history.value.map((log) => `<li>${new Log({ history: this.history, users: this.users, log, parentComponent: this }).target()}</li>`).join("")}
       </ul>
     `)
   }
 }
 
 class Log extends Component {
+  undoTransfer() {
+    if (this.log.reverted) return;
+
+    let sendFromUID = this.log.sendFromUID
+    let sendToUID = this.log.sendToUID
+    let sendAmount = this.log.sendAmount
+    let sendToName = this.log.sendToName
+    let sendFromName = this.log.sendFromName
+
+    // Revert transfer
+    let targetUsers = { sendFromUID: false, sendToUID: false };
+    let newUsersState = this.users.value.map(user => {
+      if (user.uid === sendToUID) {
+        targetUsers.sendToUID = true;
+        return { ...user, balance: (user.balance - sendAmount) };
+      }
+      if (user.uid === sendFromUID) {
+        targetUsers.sendFromUID = true;
+        return { ...user, balance: (user.balance + sendAmount) };
+      }
+      else {
+        return { ...user };
+      }
+    })
+
+    // Update this logs reverted state
+    let log;
+    if (targetUsers.sendFromUID && targetUsers.sendToUID) {
+      this.users.setValue(newUsersState);
+      log = { id: this.generateID(), type: "undotransfer", time: this.getTime(), sendFromUID, sendToUID, sendAmount, sendToName, sendFromName };
+    }
+    else {
+      log = { id: this.generateID(), type: "error", time: this.getTime(), message: "Can not revert transfer, user does not exists!" };
+    }
+
+    let newHistoryState = this.history.value.map(log => {
+      if (log.id === this.log.id) {
+        return { ...log, reverted: true }
+      }
+      else {
+        return { ...log }
+      }
+    })
+
+    this.history.setValue([...newHistoryState, log])
+  }
   template() {
     return (`
-      <p class="time"> ${this.log.time}</p >
-      ${this.log.type === "transfer" ?
-        `<p class="message"><span class="val">${this.log.sendAmount}₺</span> has been transfered from <span class="val">${this.log.sendFromName} (id:${this.log.sendFromUID})</span> to <span class="val">${this.log.sendToName} (id:${this.log.sendToUID})</span></p>` : ""
+    <p class="time"> ${this.log.time}</p >
+    ${this.log.type === "transfer" ?
+        `<p class="message"><span class="val">${this.log.sendAmount}₺</span> has been transfered from <span class="val">${this.log.sendFromName} (id:${this.log.sendFromUID})</span> to <span class="val">${this.log.sendToName} (id:${this.log.sendToUID})</span></p>
+        <button class="undo-button ${!this.log.reverted ? "active" : ""}"><svg xmlns="http://www.w3.org/2000/svg" height="26px" viewBox="0 0 24 24" width="26px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg></button>` : ""
       }
       ${this.log.type === "adduser" ?
         `<p class="message">New user <span class="val">${this.log.username} (id:${this.log.uid}) </span> has been added with <span class="val">${this.log.balance}₺ </span>balance.</p>` : ""
       }
+      ${this.log.type === "removeuser" ?
+        `<p class="message">User <span class="val">${this.log.username} (id:${this.log.uid}) </span> has been removed.</p>` : ""
+      }
       ${this.log.type === "error" ?
         `<p class="message">${this.log.message}</p>` : ""
       }
+      ${this.log.type === "undotransfer" ?
+        `<p class="message">Transfer of <span class="val">${this.log.sendAmount}₺</span> from <span class="val">${this.log.sendFromName} (id:${this.log.sendFromUID})</span> to <span class="val">${this.log.sendToName} (id:${this.log.sendToUID})</span> has been reverted.</p>` : ""
+      }
     `)
   }
+  addListeners() {
+    if (this.log.type === "transfer" && !this.log.reverted) this.targetElement.querySelector(".undo-button").addEventListener("click", this.undoTransfer);
+  }
 }
-
 
 // Initialize App
 const idCount = new idCounter();

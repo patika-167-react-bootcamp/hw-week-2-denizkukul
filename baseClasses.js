@@ -52,6 +52,12 @@ class Component {
     })
   }
 
+  // Generate random id
+  generateID() {
+    // Random number 100000 - 999999
+    return Math.floor(Math.random() * (900000) + 100000);
+  }
+
   // Method to get date and time
   getTime() {
     let today = new Date();
