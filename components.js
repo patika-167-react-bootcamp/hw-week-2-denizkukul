@@ -74,10 +74,7 @@ class UserList extends Component {
   }
 }
 
-// Component userlist-item
-class UserListItem extends Component {
 
-}
 
 // Component manages transfers --- subscribes to users state
 class NewTransfer extends Component {
