@@ -6,7 +6,7 @@
   --active-color: #799df1;
 }
 
-/* General Styles */
+/* General-Styles */
 * {
   font-family: 'Roboto', sans-serif;
   font-weight: 400;
@@ -65,29 +65,32 @@ span.val {
   background: rgb(180,180,180); 
 }
 /* Scrollbar */
-/* General Styles */
+/* General-Styles*/
 
-/* Component Styles */
+/* Component-Styles */
 .app {
-  max-width: 1300px;
-  width: 90%;
-  height: 80vh;
+  margin: 50px 0;
+  width: 100%;
+  max-width: 1400px;
   display: flex;
-  border-radius: 10px;
-  overflow: hidden;
+  flex-direction: column;
 }
 
-.users-panel {
+.app .row {
+  display:flex;
+  width:100%;
+  flex: 60vh 0 0;
+  max-height: 60vh;
+}
+
+/* Users-Panel-Start */
+.userspanel-component {
   flex: 0px 30 0;
   display: flex;
   flex-direction: column;
-  margin-right: 1px;
-}
-
-.transfers-panel {
-  flex: 0px 70 0;
-  display: flex;
-  flex-direction: column;
+  margin: 20px;
+  border-radius: 10px;
+  overflow:hidden;
 }
 
 /* NewUser-Component-Start */
@@ -102,7 +105,6 @@ span.val {
   flex:25px 0 0;
   font-weight: 500;
   margin-bottom: 10px;
-  font-size: 16px;
 }
 .newuser-component .adduser-form{
   display: flex;
@@ -117,7 +119,6 @@ span.val {
 }
 .newuser-component input{
   flex: 40px 0 0;
-  font-size: 15px;
   padding: 8px;
 }
 .username-input {
@@ -155,7 +156,7 @@ span.val {
 }
 .userlist-component .title{
   flex: 30px 0 0;
-  padding: 15px 40px 10px 30px;
+  padding: 15px 30px 10px;
   line-height: 36px;
   margin: 0;
   display: flex;
@@ -168,7 +169,7 @@ span.val {
   overflow-y: overlay;
 }
 .userlist-component li{
-  padding: 0 10px 0 30px;
+  padding: 0 10px 0 20px;
   height: 40px;
   display: flex;
   flex-direction: row;
@@ -226,6 +227,18 @@ p.username {
 }
 /* UserListItem-Component-End*/
 /* UserList-Component-End */
+/* Users-Panel-End */
+
+/* Transfers-Panel-Start */
+.transferspanel-component {
+  flex: 0px 70 0;
+  display: flex;
+  flex-direction: column;
+  margin: 20px;
+  margin-left: 0;
+  border-radius: 10px;
+  overflow: hidden;
+}
 
 /* NewTransfer-Component-Start */
 .newtransfer-component{
@@ -239,7 +252,6 @@ p.username {
   flex:25px 0 0;
   font-weight: 500;
   margin-bottom: 10px;
-  font-size: 16px;
 }
 .newtransfer-component .newtransfer-form{
   display: flex;
@@ -298,11 +310,11 @@ p.username {
 .historylogs-component .title{
   flex: 0;
   font-weight: 500;
-  margin-right: 20px;
+  margin-right: 10px;
 }
 
 .historylogs-component li {
-  padding: 0 40px 0 30px;
+  padding: 0 20px 0 20px;
   height: 40px;
   display: flex;
   flex-direction: row;
@@ -329,17 +341,32 @@ p.username {
   padding: 15px 30px 10px;
   font-weight: 500;
 }
+
 .historylogshead-component .filters{
   display:flex;
   justify-content:space-between;
   align-items:center;
   margin-left: auto;
 }
-.filters input{
-  width: 200px;
+.filters *{
+  width: 150px;
   margin-left: 25px;
-  font-size: 15px;
   padding: 8px;
+}
+
+.filters .clearfilters-button {
+  font-weight: 500;
+  border-radius: 5px;
+  background-color: var(--color-2);
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+.clearfilters-button:hover, .clearfilters-button:focus-visible{
+  background-color: var(--hover-color);
+}
+.clearfilters-button:active{
+  background-color: var(--active-color);
 }
 /* HistoryLogsHead-Component-End */
 /* HistoryLogsList-Component-Start */
@@ -355,6 +382,14 @@ p.username {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.log-component .time {
+  min-width: 140px;
+}
+
+.log-component .message {
+  text-align: right;
 }
 
 .undo-button {
@@ -384,3 +419,294 @@ p.username {
 }
 /* Log-component-End */
 /* HistoryLogs-Component-End */
+/* Transfers-Panel-End */
+
+/* Products-Panel-Start */
+.productspanel-component {
+  flex: 0px 50 0;
+  display: flex;
+  flex-direction: column;
+  margin: 0 20px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* NewProduct-Component-Start */
+.newproduct-component {
+  flex: 180px 0 0;
+  display: flex;
+  flex-direction: column;
+  padding: 30px;
+  background-color: rgba(255,255,255,0.4);
+}
+
+.newproduct-component .title{
+  flex:25px 0 0;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+.newproduct-component .addproduct-form{
+  display: flex;
+  height: 100%
+}
+.newproduct-component .column{
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.productname-input {
+  flex: 40px 0 0;
+  margin-right: 30px;
+  margin-bottom: 10px;
+  padding: 8px;
+}
+.price-input {
+  flex: 40px 0 0;
+  margin-right: 30px;
+  padding: 8px;
+}
+.stock-input {
+  flex: 40px 0 0;
+  margin-bottom: 10px;
+  padding: 8px;
+}
+.addproduct-button {
+  padding: 8px;
+  font-weight:500;
+  flex: 40px 0 0;
+  height: 100%;
+  font-weight: 500;
+  border-radius: 5px;
+  background-color: var(--color-2);
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+.addproduct-button:hover, .addproduct-button:focus-visible{
+  background-color: var(--hover-color);
+}
+.addproduct-button:active{
+  background-color: var(--active-color);
+}
+
+/* NewProduct-Component-End */
+
+/* ProductList-Component-Start */
+.productlist-component {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: hidden;
+  background-color: rgba(255,255,255,0.4);
+  margin-top: 1px;
+  text-align: center;
+}
+.productlist-component .title{
+  flex: 30px 0 0;
+  padding: 15px 20px 10px;
+  line-height: 36px;
+  margin: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.productlist-component ul{
+  list-style: none;
+  overflow-y: overlay;
+}
+.productlist-component li{
+  padding: 0 20px;
+  height: 40px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  overflow-x: auto;
+}
+.productlist-component .title *{
+  font-weight: 500;
+  flex:1;
+}
+.productlist-component li:nth-child(odd) {
+  background-color: rgba(255,255,255,0.3);
+}
+.productlist-component li:nth-child(even) {
+  background-color: rgba(255,255,255,0.1);
+}
+.productlist-component li p:nth-child(1){
+  display: inline-block;
+}
+.productlist-component li p:nth-child(2){
+  display: inline-block;
+}
+
+/* ProductListItem-Component-Start*/
+.productlistitem-component {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.productlistitem-component *{
+  flex: 1;
+}
+
+.productlistitem-component .button-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.productlistitem-component .addtocart-button{
+  border: none;
+  outline: none;
+  flex: 30px 0 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent;
+  cursor: default;
+  fill: #aaa;
+}
+
+.addtocart-button.active {
+  fill: #4b7bec;
+  cursor: pointer;
+}
+.addtocart-button.active:hover svg {
+  fill: var(--hover-color)
+}
+.addtocart-button.active:active svg {
+  fill: var(--active-color)
+}
+/* Products-Panel-End */
+
+/* Transaction-Panel-Start */
+.transactionpanel-component {
+  flex: 0px 50 0;
+  display: flex;
+  flex-direction: column;
+  margin-right: 20px;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+/* ManageTransaction-Component-Start */
+.managetransaction-component {
+  flex: 180px 0 0;
+  display: flex;
+  flex-direction: column;
+  padding: 30px;
+  background-color: rgba(255,255,255,0.4);
+}
+
+.managetransaction-component .title{
+  flex:25px 0 0;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.managetransaction-component .confirmtransaction-form{
+  display: flex;
+  flex-direction: column;
+}
+
+.selectuser-input {
+  flex: 40px 0 0;
+  margin-bottom: 10px;
+  padding: 8px;
+}
+
+.confirmtransaction-button {
+  flex: 40px 0 0;
+  height: 100%;
+  font-weight: 500;
+  border-radius: 5px;
+  background-color: var(--color-2);
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+/* ManageTransaction-Component-End */
+
+/* CartList-Component-Start */
+.cartlist-component {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: hidden;
+  background-color: rgba(255,255,255,0.4);
+  margin-top: 1px;
+  text-align: center;
+}
+.cartlist-component .title{
+  flex: 30px 0 0;
+  padding: 15px 20px 10px 20px;
+  line-height: 36px;
+  margin: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.cartlist-component .title *{
+  padding: 0 10px;
+  flex:1;
+}
+.cartlist-component ul{
+  list-style: none;
+  overflow-y: overlay;
+}
+.cartlist-component li{
+  padding: 0 10px 0 30px;
+  height: 40px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  overflow-x: auto;
+}
+.cartlist-component .title *{
+  font-weight: 500;
+}
+.cartlist-component li:nth-child(odd) {
+  background-color: rgba(255,255,255,0.3);
+}
+.cartlist-component li:nth-child(even) {
+  background-color: rgba(255,255,255,0.1);
+}
+.emptycart {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.removeitem-button{
+  border: none;
+  outline: none;
+  flex: 30px 0 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent;
+  cursor: default;
+  fill: #4b7bec;
+  cursor: pointer;
+}
+.removeitem-button:hover svg {
+  fill: var(--hover-color)
+}
+.removeitem-button:active svg {
+  fill: var(--active-color)
+}
+
+.cartlistitem-component {
+  flex:1;
+  display: flex;
+}
+.cartlistitem-component *{
+  flex: 1;
+}
+/* CartList-Component-End */
+/* Transaction-Panel-End */
