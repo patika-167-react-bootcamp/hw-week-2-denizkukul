@@ -17,11 +17,11 @@ class App extends Component {
       <div id="${this.targetElementID}" class="app">
         <div class="row">
           ${new UsersPanel({ users: this.users, history: this.history, parentComponent: this }).target()}
-          ${new TransfersPanel({ users: this.users, history: this.history, parentComponent: this }).target()}
+          ${new TransfersPanel({ users: this.users, history: this.history, products: this.products, parentComponent: this }).target()}
         </div>
         <div class="row">
           ${new ProductsPanel({ currentUser: this.currentUser, cart: this.cart, products: this.products, parentComponent: this }).target()}
-          ${new TransactionPanel({ currentUser: this.currentUser, cart: this.cart, products: this.products, users: this.users, parentComponent: this }).target()}
+          ${new TransactionPanel({ currentUser: this.currentUser, cart: this.cart, products: this.products, users: this.users, history: this.history, parentComponent: this }).target()}
         </div>
       </div>
     `)

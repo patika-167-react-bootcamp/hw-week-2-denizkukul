@@ -60,10 +60,8 @@ class Component {
 
   // Method to get date and time
   getTime() {
-    let today = new Date();
-    let date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
-    let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-    return date + ' ' + time;
+    let time = new Date();
+    return time.toLocaleString('en-GB');
   }
 
   // Add this component to subscribers of related states

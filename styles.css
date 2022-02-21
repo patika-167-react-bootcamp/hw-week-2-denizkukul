@@ -81,6 +81,7 @@ span.val {
   width:100%;
   flex: 60vh 0 0;
   max-height: 60vh;
+  min-height: 400px;
 }
 
 /* Users-Panel-Start */
@@ -107,11 +108,12 @@ span.val {
   margin-bottom: 10px;
 }
 .newuser-component .adduser-form{
+  width: 100%;
   display: flex;
   flex-direction: row;
 }
 .newuser-component .inputs-container{
-  flex: 80;
+  flex: 80% 1 1;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -120,16 +122,17 @@ span.val {
 .newuser-component input{
   flex: 40px 0 0;
   padding: 8px;
+  width: 100%;
 }
 .username-input {
   margin-bottom: 10px;
 }
 .newuser-component .button-container{
-  flex: 20;
+  flex: 80px 0 2;
 }
 .adduser-button {
   height: 100%;
-  width: 80px;
+  width: 100%;
   font-weight: 500;
   border-radius: 5px;
   background-color: var(--color-2);
@@ -216,6 +219,7 @@ p.username {
   background-color: transparent;
   cursor: pointer;
   margin-left: 10px;
+  fill: #4b7bec;
 }
 
 .removeuser-button:hover svg {
@@ -503,7 +507,7 @@ p.username {
 }
 .productlist-component .title{
   flex: 30px 0 0;
-  padding: 15px 20px 10px;
+  padding: 15px 0px 10px;
   line-height: 36px;
   margin: 0;
   display: flex;
@@ -516,7 +520,6 @@ p.username {
   overflow-y: overlay;
 }
 .productlist-component li{
-  padding: 0 20px;
   height: 40px;
   display: flex;
   flex-direction: row;
@@ -643,7 +646,7 @@ p.username {
 }
 .cartlist-component .title{
   flex: 30px 0 0;
-  padding: 15px 20px 10px 20px;
+  padding: 15px 0px 10px;
   line-height: 36px;
   margin: 0;
   display: flex;
@@ -652,7 +655,6 @@ p.username {
   align-items: center;
 }
 .cartlist-component .title *{
-  padding: 0 10px;
   flex:1;
 }
 .cartlist-component ul{
@@ -660,7 +662,6 @@ p.username {
   overflow-y: overlay;
 }
 .cartlist-component li{
-  padding: 0 10px 0 30px;
   height: 40px;
   display: flex;
   flex-direction: row;
@@ -677,12 +678,15 @@ p.username {
 .cartlist-component li:nth-child(even) {
   background-color: rgba(255,255,255,0.1);
 }
-.emptycart {
+
+
+.cartlistitem-component .button-container {
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
 }
-.removeitem-button{
+
+.cartlistitem-component .removeitem-button{
   border: none;
   outline: none;
   flex: 30px 0 0;
@@ -704,6 +708,8 @@ p.username {
 .cartlistitem-component {
   flex:1;
   display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .cartlistitem-component *{
   flex: 1;

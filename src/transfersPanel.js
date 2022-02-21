@@ -3,7 +3,7 @@ class TransfersPanel extends Component {
   template() {
     return (`
       ${new NewTransfer({ users: this.users, history: this.history, subscriptions: [this.users], parentComponent: this }).target()}
-      ${new HistoryLogs({ users: this.users, history: this.history, parentComponent: this }).target()}
+      ${new HistoryLogs({ users: this.users, history: this.history, products: this.products, parentComponent: this }).target()}
     `)
   }
 }
@@ -19,26 +19,54 @@ class NewTransfer extends Component {
     let receiverName;
     let senderName;
 
+    // If sender and receiver are same log error and return
     if (senderID === receiverID) {
       this.history.setValue([...this.history.value, { id: this.generateID(), type: "error", time: this.getTime(), message: "Sender and reciever can not be same user." }])
       return;
     }
 
-    // Transfer money
-    const newUsersState = this.users.value.map(user => {
-      if (user.id === senderID) {
+    // Find sender and receiver, check if sender has enough funds
+    let hasEnoughFunds = false;
+    let senderIndex, receiverIndex;
+    let targetIDs = [senderID, receiverID];
+    this.users.value.find((user, index) => {
+      let indexInTargetIDs = targetIDs.indexOf(user.id);
+      if (indexInTargetIDs === 0) { // Sender user is found in this case
+        if (user.balance < amount) { // Transfer can not proceed, stop iterating and log error
+          return true;
+        }
+        senderIndex = index;
         senderName = user.name;
-        return { ...user, balance: (user.balance - amount) };
+        hasEnoughFunds = true;
+        targetIDs[0] = null;
+        return false
       }
-      if (user.id === receiverID) {
+      if (indexInTargetIDs === 1) { // Receiver user is found in this case
+        receiverIndex = index;
         receiverName = user.name;
-        return { ...user, balance: (user.balance + amount) };
+        targetIDs[1] = null;
+        return false
       }
-      else {
-        return { ...user };
+      if (targetIDs.some(id => id !== null)) {
+        return false;
       }
+      // If both users are found stop iterating
+      return true;
     })
-    this.users.setValue(newUsersState);
+
+    // If sender does not have enought funds log error
+    if (!hasEnoughFunds) {
+      this.history.setValue([...this.history.value, { id: this.generateID(), type: "error", time: this.getTime(), message: "Can not complete transfer, Insufficent funds!" }])
+      return;
+    }
+
+    // Transfer money
+    let usersState = this.users.value.slice();
+    usersState.splice(senderIndex, 1, { ...usersState[senderIndex], balance: (this.users.value[senderIndex].balance - amount) });
+    usersState.splice(receiverIndex, 1, { ...usersState[receiverIndex], balance: (this.users.value[receiverIndex].balance + amount) });
+    this.users.setValue(usersState);
+
+    // Create new transfer log
     this.history.setValue([...this.history.value, { id: this.generateID(), type: "transfer", time: this.getTime(), amount, senderName, senderID, receiverName, receiverID, reverted: false }])
   }
 
@@ -55,13 +83,13 @@ class NewTransfer extends Component {
             <option value="" disabled selected>To</option>
             ${this.users.value.map(user => `<option value="${user.id}">${user.name}</option>`).join("")}
           </select>
-        </div >
+        </div>
         <div class="column">
-          <input class="amount-input" type="number" placeholder="Amount" required max="999999999" />
+          <input class="amount-input" type="number" placeholder="Amount" required min="0" max="999999999" />
           <button class="send-button"> Send </button>
         </div>
-      </form >
-    `)
+      </form>
+      `)
   }
 
   addListeners() {
@@ -79,8 +107,8 @@ class HistoryLogs extends Component {
   template() {
     return (`
       ${new HistoryLogsHead({ filterType: this.filterType, filterName: this.filterName, parentComponent: this }).target()}
-      ${new HistoryLogsList({ history: this.history, filterType: this.filterType, filterName: this.filterName, users: this.users, subscriptions: [this.history, this.filterType, this.filterName], parentComponent: this }).target()}
-    `)
+      ${new HistoryLogsList({ history: this.history, filterType: this.filterType, filterName: this.filterName, users: this.users, products: this.products, subscriptions: [this.history, this.filterType, this.filterName], parentComponent: this }).target()}
+      `)
   }
 }
 
@@ -99,18 +127,18 @@ class HistoryLogsHead extends Component {
   }
   template() {
     return (`
-      <div class="title"> History </div>
-      <div class="filters">
-        <select class="filtertype-input">
-          <option value="" selected disabled hidden>Filter By</option>
-          <option value="sender">Sender</option>
-          <option value="receiver">Receiver</option>
-          <option value="buyer">Buyer</option>
-          <option value="any">Any</option>
-        </select>
-        <input class="filtername-input" placeholder="Name" pattern="([a-zA-Z]+[a-zA-Z ]+)" maxlength="20"/>
-        <button class="clearfilters-button">Clear Filters</button>
-      </div>
+    <div class= "title" > History </div>
+    <div class="filters">
+      <select class="filtertype-input">
+        <option value="" selected disabled hidden>Filter By</option>
+        <option value="sender">Sender</option>
+        <option value="receiver">Receiver</option>
+        <option value="buyer">Buyer</option>
+        <option value="any">Any</option>
+      </select>
+      <input class="filtername-input" placeholder="Name" pattern="([a-zA-Z]+[a-zA-Z ]+)" maxlength="20" />
+      <button class="clearfilters-button">Clear Filters</button>
+    </div>
     `)
   }
   addListeners() {
@@ -157,10 +185,10 @@ class HistoryLogsList extends Component {
   }
   template() {
     return (`
-      <ul class="logs">
-        ${this.filterLogs().map((log) => `<li>${new Log({ history: this.history, users: this.users, log, parentComponent: this }).target()}</li>`).join("")}
+      <ul class= "logs">
+      ${this.filterLogs().map((log) => `<li>${new Log({ history: this.history, users: this.users, log, products: this.products, parentComponent: this }).target()}</li>`).join("")}
       </ul>
-    `)
+      `)
   }
   afterRender() {
     // Scroll to bottom of the list
@@ -175,51 +203,111 @@ class Log extends Component {
     let { senderID, receiverID, amount, receiverName, senderName } = this.log
 
     // Revert transfer
-    let targetUsers = { senderID: false, receiverID: false };
-    let newUsersState = this.users.value.map(user => {
-      if (user.id === receiverID) {
-        targetUsers.receiverID = true;
-        return { ...user, balance: (user.balance - amount) };
+    let targetIDs = [senderID, receiverID];
+    let senderIndex, receiverIndex;
+    let usersState = this.users.value.slice();
+    let usersExist = false;
+    usersState.find((user, index) => {
+      let indexInTargetIDs = targetIDs.indexOf(user.id);
+      if (indexInTargetIDs === 0) { // Sender user is found in this case
+        senderIndex = index;
+        targetIDs[0] = null;
       }
-      if (user.id === senderID) {
-        targetUsers.senderID = true;
-        return { ...user, balance: (user.balance + amount) };
+      if (indexInTargetIDs === 1) { // Receiver user is found in this case
+        receiverIndex = index;
+        targetIDs[1] = null;
       }
-      else {
-        return { ...user };
+      if (targetIDs.some(id => id !== null)) {
+        return false;
       }
+      // If both users are found stop iterating
+      usersExist = true;
+      return true;
     })
 
-    // Update this logs reverted state
-    let log;
-    if (targetUsers.senderID && targetUsers.receiverID) {
-      this.users.setValue(newUsersState);
-      log = { id: this.generateID(), type: "undotransfer", time: this.getTime(), senderID, receiverID, amount, receiverName, senderName };
-    }
-    else {
-      log = { id: this.generateID(), type: "error", time: this.getTime(), message: "Can not revert transfer, user does not exists!" };
+    let logOfRevert;
+    // If both users can not be found log error
+    if (!usersExist) {
+      logOfRevert = { id: this.generateID(), type: "error", time: this.getTime(), message: "Can not revert transfer, user does not exists!" };
     }
 
-    let newHistoryState = this.history.value.map(log => {
-      if (log.id === this.log.id) {
-        return { ...log, reverted: true }
+    // If both users are found revert transfer
+    if (usersExist) {
+      usersState.splice(senderIndex, 1, { ...usersState[senderIndex], balance: (usersState[senderIndex].balance + amount) });
+      usersState.splice(receiverIndex, 1, { ...usersState[receiverIndex], balance: (usersState[receiverIndex].balance - amount) });
+      logOfRevert = { id: this.generateID(), type: "undotransfer", time: this.getTime(), senderID, receiverID, amount, receiverName, senderName };
+    }
+
+    // Update this transfers reverted property and add new log to history
+    let historyState = this.history.value.slice();
+    let logIndex = historyState.findIndex(log => log.id === this.log.id);
+    historyState.splice(logIndex, 1, { ...this.log, reverted: true });
+    this.users.setValue(usersState);
+    this.history.setValue([...historyState, logOfRevert]);
+  }
+
+  undoTransaction() {
+    if (this.log.reverted) return;
+    let { cart, buyerID } = this.log;
+    let users = this.users.value.slice();
+    let products = this.products.value.slice();
+    let totalCost = 0;
+    let buyerState, buyerIndex;
+
+    let userExists = false;
+    this.users.value.find((user, index) => {
+      if (user.id === buyerID) {
+        buyerState = user;
+        buyerIndex = index;
+        userExists = true;
+        return true;
       }
-      else {
-        return { ...log }
-      }
+      return false;
     })
 
-    this.history.setValue([...newHistoryState, log])
+    let logOfRevert;
+    if (!userExists) { // Log error and return
+      logOfRevert = { id: this.generateID(), type: "error", time: this.getTime(), message: "Can not revert transaction, user does not exists!" };
+    }
+    if (userExists) {
+      // Save product ids for iteration in next line
+      let targetIDs = [];
+      cart.forEach(item => targetIDs.push(item.product.id));
+      // Iterate and modify products until all items in cart are found
+      products.some((product, index) => {
+        let indexInCart = targetIDs.indexOf(product.id);
+        if (indexInCart > -1) {
+          products[index] = { ...products[index], stock: (products[index].stock + cart[indexInCart].amount) };
+          totalCost += Number(cart[indexInCart].amount) * Number(cart[indexInCart].product.price);
+          targetIDs[indexInCart] = null;
+        }
+        if (targetIDs.some(id => id !== null)) {
+          return false;
+        }
+        return true;
+      })
+      users.splice(buyerIndex, 1, { ...buyerState, balance: (buyerState.balance + totalCost) });
+      // Log of this revert action
+      logOfRevert = { id: this.generateID(), type: "undotransaction", time: this.getTime(), buyerID, totalCost, buyerName: buyerState.name, revertedID: this.log.id };
+    }
+
+    // Set values to new state, update this transfers reverted property and add new log to history
+    let historyState = this.history.value.slice();
+    let logIndex = historyState.findIndex(log => log.id === this.log.id); // Log of transaction to be reverted
+    historyState.splice(logIndex, 1, { ...this.log, reverted: true });
+    this.history.setValue([...historyState, logOfRevert]);
+    this.users.setValue(users);
+    this.products.setValue(products);
   }
   template() {
     return (`
-    <p class="time"> ${this.log.time}</p >
-    ${this.log.type === "transfer" ?
-        `<p class="message"><span class="val">${this.log.amount}₺</span> has been transfered from <span class="val">${this.log.senderName} (id:${this.log.senderID})</span> to <span class="val">${this.log.receiverName} (id:${this.log.receiverID})</span></p>
-        <button class="undo-button ${!this.log.reverted ? "active" : ""}"><svg xmlns="http://www.w3.org/2000/svg" height="26px" viewBox="0 0 24 24" width="26px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg></button>` : ""
+      <p class= "time" > ${this.log.time}</p>
+      ${this.log.type === "transfer" ?
+        `<p class="message"><span class="val">${this.log.amount.toLocaleString()}₺</span> has been transfered from <span class="val">${this.log.senderName} (id:${this.log.senderID})</span> to <span class="val">${this.log.receiverName} (id:${this.log.receiverID})</span></p>
+        <button class="undo-button ${!this.log.reverted ? "active" : ""}">${undoIcon}</button>` : ""
       }
       ${this.log.type === "adduser" ?
-        `<p class="message">New user <span class="val">${this.log.username} (id:${this.log.id}) </span> has been added with <span class="val">${this.log.balance}₺ </span>balance.</p>` : ""
+        `<p class="message">New user <span class="val">${this.log.username} (id:${this.log.id}) </span> has been added with <span class="val">${this.log.balance.toLocaleString()} ₺ </span>balance.</p>` : ""
       }
       ${this.log.type === "removeuser" ?
         `<p class="message">User <span class="val">${this.log.username} (id:${this.log.id}) </span> has been removed.</p>` : ""
@@ -228,11 +316,19 @@ class Log extends Component {
         `<p class="message">${this.log.message}</p>` : ""
       }
       ${this.log.type === "undotransfer" ?
-        `<p class="message">Transfer of <span class="val">${this.log.amount}₺</span> from <span class="val">${this.log.senderName} (id:${this.log.senderID})</span> to <span class="val">${this.log.receiverName} (id:${this.log.receiverID})</span> has been reverted.</p>` : ""
+        `<p class="message">Transfer of <span class="val">${this.log.amount.toLocaleString()}₺</span> from <span class="val">${this.log.senderName} (id:${this.log.senderID})</span> to <span class="val">${this.log.receiverName} (id:${this.log.receiverID})</span> has been reverted.</p>` : ""
       }
-    `)
+      ${this.log.type === "transaction" ?
+        `<p class="message">User <span class="val">${this.log.buyerName} (id:${this.log.buyerID})</span> has made a <span class="val">${this.log.totalCost.toLocaleString()}₺</span> transaction.</p>
+        <button class="undo-button ${!this.log.reverted ? "active" : ""}">${undoIcon}</button>` : ""
+      }
+      ${this.log.type === "undotransaction" ?
+        `<p class="message"><span class="val">Transaction (id:${this.log.revertedID})</span><span class="val"> by ${this.log.buyerName} (id:${this.log.buyerID})</span>'s has been reverted and <span class="val">${this.log.totalCost.toLocaleString()}₺</span> is refunded.</p>` : ""
+      }
+      `)
   }
   addListeners() {
     if (this.log.type === "transfer" && !this.log.reverted) this.targetElement.querySelector(".undo-button").addEventListener("click", this.undoTransfer);
+    if (this.log.type === "transaction" && !this.log.reverted) this.targetElement.querySelector(".undo-button").addEventListener("click", this.undoTransaction);
   }
 }

@@ -2,7 +2,7 @@
 class TransactionPanel extends Component {
   template() {
     return (`
-    ${new ManageTransaction({ users: this.users, cart: this.cart, currentUser: this.currentUser, products: this.products, subscriptions: [this.users, this.currentUser], parentComponent: this }).target()}
+    ${new ManageTransaction({ users: this.users, cart: this.cart, currentUser: this.currentUser, products: this.products, history: this.history, subscriptions: [this.users, this.currentUser], parentComponent: this }).target()}
     ${new CartList({ currentUser: this.currentUser, cart: this.cart, products: this.products, subscriptions: [this.cart], parentComponent: this }).target()}
     `)
   }
@@ -15,7 +15,9 @@ class ManageTransaction extends Component {
     let cart = this.cart.value.slice();
     let products = this.products.value.slice();
     let targetIDs = []
+    let hasEnoughFunds = true;
     let totalCost = 0;
+
     // Save product ids for iteration in next line
     cart.forEach(item => targetIDs.push(item.product.id));
 
@@ -25,6 +27,10 @@ class ManageTransaction extends Component {
       if (indexInCart > -1) {
         products[index] = { ...products[index], stock: (products[index].stock - cart[indexInCart].amount) };
         totalCost += Number(cart[indexInCart].amount) * Number(cart[indexInCart].product.price);
+        if (totalCost > this.currentUser.value.balance) { // User has insufficent funts, Transaction can not proceed, stop iterating
+          hasEnoughFunds = false;
+          return true;
+        }
         targetIDs[indexInCart] = null;
       }
       if (targetIDs.some(id => id !== null)) {
@@ -33,7 +39,11 @@ class ManageTransaction extends Component {
       return true;
     })
 
-    console.log(totalCost)
+    if (!hasEnoughFunds) {  // Log error and return
+      this.history.setValue([...this.history.value, { id: this.generateID(), type: "error", time: this.getTime(), message: "Can not complete transaction, Insufficent funds!" }])
+      return;
+    }
+
     let users = this.users.value.slice();
     let userIndex, userData;
     users.find((user, index) => {
@@ -51,6 +61,7 @@ class ManageTransaction extends Component {
     this.products.setValue(products);
     this.cart.setValue([]);
     this.currentUser.setValue(null)
+    this.history.setValue([...this.history.value, { id: this.generateID(), type: "transaction", time: this.getTime(), cart, totalCost, buyerName: userData.name, buyerID: userData.id, reverted: false }])
   }
   setCurrentUser(e) {
     let userIndex = this.users.value.findIndex(user => user.id === Number(e.target.value));
@@ -116,10 +127,11 @@ class CartListItem extends Component {
   template() {
     return (`
       <p class="productname" > ${this.cartItem.product.name}</p>
-      <p class="price">${this.cartItem.product.price} ₺</p>
-      <p class="amount">${this.cartItem.amount}</p>
-      <p class="totalcost">${this.cartItem.amount * this.cartItem.product.price}₺</p>
-      <button class="removeitem-button"><svg xmlns="http://www.w3.org/2000/svg" height="26px" viewBox="0 0 24 24" width="26px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M14.59 8L12 10.59 9.41 8 8 9.41 10.59 12 8 14.59 9.41 16 12 13.41 14.59 16 16 14.59 13.41 12 16 9.41 14.59 8zM12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg></button>
+      <p class="price">${this.cartItem.product.price.toLocaleString()} ₺</p>
+      <p class="amount">${this.cartItem.amount.toLocaleString()}</p>
+      <p class="totalcost">${(this.cartItem.amount * this.cartItem.product.price).toLocaleString()}₺</p>
+      <div class="button-container">
+      <button class="removeitem-button"><svg xmlns="http://www.w3.org/2000/svg" height="26px" viewBox="0 0 24 24" width="26px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M14.59 8L12 10.59 9.41 8 8 9.41 10.59 12 8 14.59 9.41 16 12 13.41 14.59 16 16 14.59 13.41 12 16 9.41 14.59 8zM12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg></button></div>
     `)
   }
   addListeners() {
