@@ -84,9 +84,18 @@
 .userlist-component ul{
   list-style: none;
   overflow-y: overlay;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
 }
+
+@supports not (overflow:overlay) {
+  .userlist-component ul {
+    overflow:auto;
+  } 
+}
+
 .userlist-component li{
-  padding: 0 10px 0 20px;
+  padding: 0 10px 0 30px;
   height: 40px;
   display: flex;
   flex-direction: row;

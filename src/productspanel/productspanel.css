@@ -91,6 +91,13 @@
 .productlist-component ul{
   list-style: none;
   overflow-y: overlay;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+@supports not (overflow:overlay) {
+  .productlist-component ul{
+    overflow:auto;
+  } 
 }
 .productlist-component li{
   height: 40px;

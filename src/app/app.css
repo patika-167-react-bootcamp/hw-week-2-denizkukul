@@ -50,20 +50,31 @@ span.val {
 }
 
 /* Scrollbar */
-::-webkit-scrollbar {
+*::-webkit-scrollbar {
   width: 3px;
   height: 3px;
 }
-::-webkit-scrollbar-track {
+*::-webkit-scrollbar-track {
   border-radius: 5px;
 }
-::-webkit-scrollbar-thumb {
+*::-webkit-scrollbar-thumb {
   background: rgba(75,123,236,1); 
   border-radius: 5px;
 }
-::-webkit-scrollbar-thumb:hover {
+*::-webkit-scrollbar-thumb:hover {
   background: rgb(180,180,180); 
 }
+
+html {
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body::-webkit-scrollbar-thumb {
+  background: #0000CD;
+}
+
 /* Scrollbar */
 /* General-Styles*/
 

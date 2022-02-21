@@ -18,6 +18,12 @@ class ManageTransaction extends Component {
     let hasEnoughFunds = true;
     let totalCost = 0;
 
+    // If cart is empty log error
+    if (this.cart.value.length === 0) {
+      this.history.setValue([...this.history.value, { id: this.generateID(), type: "error", time: this.getTime(), message: "Cart is empty!" }])
+      return;
+    }
+
     // Save product ids for iteration in next line
     cart.forEach(item => targetIDs.push(item.product.id));
 
@@ -93,7 +99,7 @@ class ManageTransaction extends Component {
           <select class="selectuser-input" required>
             ${this.createOptions()}
           </select>
-          <button class="confirmtransaction-button"> Confirm Transaction </button>
+          <button class="confirmtransaction-button ${this.currentUser.value && this.cart.value.length > 0 ? "active" : ""}"> Confirm Transaction </button>
         </div>
       </form>
     `)

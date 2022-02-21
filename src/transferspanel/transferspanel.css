@@ -83,7 +83,7 @@
 }
 
 .historylogs-component li {
-  padding: 0 20px 0 20px;
+  padding: 0 30px 0 30px;
   height: 40px;
   display: flex;
   flex-direction: row;
@@ -141,6 +141,13 @@
 /* HistoryLogsList-Component-Start */
 .historylogslist-component{
   overflow-y: overlay;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+@supports not (overflow:overlay) {
+  .historylogslist-component{
+    overflow:auto;
+  } 
 }
 
 /* HistoryLogsList-Component-End */

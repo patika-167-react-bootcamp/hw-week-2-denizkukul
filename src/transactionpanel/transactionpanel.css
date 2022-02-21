@@ -44,6 +44,12 @@
   color: white;
   cursor: pointer;
 }
+.confirmtransaction-button.active:hover, .confirmtransaction-button.active:focus-visible{
+  background-color: var(--hover-color);
+}
+.confirmtransaction-button.active:active{
+  background-color: var(--active-color);
+}
 /* ManageTransaction-Component-End */
 
 /* CartList-Component-Start */
@@ -72,6 +78,13 @@
 .cartlist-component ul{
   list-style: none;
   overflow-y: overlay;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+@supports not (overflow:overlay) {
+  .cartlist-component ul{
+    overflow:auto;
+  } 
 }
 .cartlist-component li{
   height: 40px;
